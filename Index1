@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Habit tracker – Oct 19 to Dec 3</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EEF1EC;
+    --surface: #FFFFFF;
+    --ink: #1E2722;
+    --muted: #5F6B64;
+    --line: #D5DCD5;
+    --today: #FFF4D1;
+    --c1: #7FAF72;  /* 5k steps – moss */
+    --c2: #2F6E4E;  /* 10k steps – spruce */
+    --c3: #B4679F;  /* yoga – heather */
+    --c4: #3B82B0;  /* water – glacier */
+    --c5: #C98E1E;  /* strength – ochre */
+    --check: #FFFFFF;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131916;
+      --surface: #1B231F;
+      --ink: #E6ECE8;
+      --muted: #97A49C;
+      --line: #2D3832;
+      --today: #2E2B1B;
+      --c1: #8FC482;
+      --c2: #4FA77A;
+      --c3: #D08AC0;
+      --c4: #5FA6D6;
+      --c5: #E0A93A;
+      --check: #131916;
+      color-scheme: dark;
+    }
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 96px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg);
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 12px 48px; }
+
+  header { padding: 0 6px 22px; }
+  h1 {
+    font-size: clamp(2rem, 7vw, 3.1rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.02;
+    margin: 0 0 10px;
+  }
+  .range { color: var(--muted); margin: 0 0 18px; }
+  .summary { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: baseline; }
+  .summary strong { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; margin-right: 6px; }
+  .summary span { color: var(--muted); }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    background: var(--surface);
+    border-radius: 18px;
+    border: 1px solid var(--line);
+  }
+  col.date-col { width: 84px; }
+  thead th {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 4px 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+    vertical-align: bottom;
+    text-align: center;
+  }
+  thead th:first-child { text-align: left; padding-left: 14px; border-top-left-radius: 18px; }
+  thead th:last-child { border-top-right-radius: 18px; }
+  .hlabel { display: block; min-height: 2.4em; }
+  .count { display: block; margin-top: 6px; font-size: 0.78rem; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bar { display: block; height: 4px; border-radius: 2px; background: var(--line); margin: 6px auto 0; width: 70%; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--hc); transition: width .25s ease; }
+
+  tr.week td {
+    padding: 16px 14px 6px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+  }
+  tr.week:first-child td { border-top: 0; }
+
+  tbody td { padding: 5px 2px; text-align: center; }
+  tbody td.date { text-align: left; padding-left: 14px; white-space: nowrap; }
+  .dow { display: block; font-size: 0.72rem; color: var(--muted); line-height: 1; }
+  .dnum { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .star { color: var(--c5); margin-left: 3px; visibility: hidden; }
+  tr.done .star { visibility: visible; }
+
+  tr.today td { background: var(--today); }
+  tr.today td.date .dow::after { content: " today"; font-weight: 600; color: var(--ink); }
+  tr.past:not(.today) .dnum { color: var(--muted); }
+
+  /* Checkbox cells */
+  .cb { position: relative; display: inline-block; width: 38px; height: 38px; }
+  .cb input {
+    appearance: none; -webkit-appearance: none;
+    margin: 0; width: 100%; height: 100%;
+    border-radius: 11px;
+    border: 2px solid var(--line);
+    background: transparent;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .cb input:hover { border-color: var(--hc); }
+  .cb input:active { transform: scale(0.92); }
+  .cb input:checked { background: var(--hc); border-color: var(--hc); }
+  .cb input:focus-visible { outline: 3px solid var(--hc); outline-offset: 2px; }
+  .cb svg {
+    position: absolute; inset: 0; margin: auto; width: 20px; height: 20px;
+    pointer-events: none; stroke: var(--check); stroke-width: 3.2; fill: none;
+    stroke-linecap: round; stroke-linejoin: round;
+    opacity: 0; transition: opacity .12s ease;
+  }
+  .cb input:checked + svg { opacity: 1; }
+
+  .h1c { --hc: var(--c1); } .h2c { --hc: var(--c2); } .h3c { --hc: var(--c3); }
+  .h4c { --hc: var(--c4); } .h5c { --hc: var(--c5); }
+
+  footer { padding: 22px 6px 0; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; color: var(--muted); font-size: 0.85rem; }
+  button.link {
+    font: inherit; color: var(--muted); background: none; border: 1px solid var(--line);
+    border-radius: 999px; padding: 8px 14px; cursor: pointer;
+  }
+  button.link:hover { color: var(--ink); border-color: var(--muted); }
+  button.link:focus-visible { outline: 3px solid var(--c4); outline-offset: 2px; }
+
+  @media (max-width: 420px) {
+    main { padding: 18px 4px 40px; }
+    col.date-col { width: 66px; }
+    thead th:first-child, tbody td.date, tr.week td { padding-left: 10px; }
+    thead th { font-size: 0.72rem; }
+    .cb { width: 34px; height: 34px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Show up every day</h1>
+    <p class="range">46 days, Monday Oct 19 to Thursday Dec 3, 2026</p>
+    <div class="summary">
+      <div><strong id="todayStat">–</strong><span id="todayLabel"></span></div>
+      <div><strong id="totalStat">0</strong><span>of 230 check-ins</span></div>
+      <div><strong id="perfectStat">0</strong><span>full days</span></div>
+    </div>
+  </header>
+
+  <table aria-label="Daily habit checklist">
+    <colgroup><col class="date-col"><col><col><col><col><col></colgroup>
+    <thead><tr id="headRow"><th scope="col">Date</th></tr></thead>
+    <tbody id="body"></tbody>
+  </table>
+
+  <footer>
+    <span>Saved automatically in this browser.</span>
+    <button class="link" id="resetBtn" type="button">Clear all check-ins</button>
+  </footer>
+</main>
+
+<script>
+(function () {
+  const HABITS = [
+    { id: "s5",  label: "Walked 5,000 steps",  cls: "h1c" },
+    { id: "s10", label: "Walked 10,000 steps", cls: "h2c" },
+    { id: "yoga", label: "15 min of yoga",     cls: "h3c" },
+    { id: "water", label: "1 litre of water",  cls: "h4c" },
+    { id: "strength", label: "Strength training", cls: "h5c" }
+  ];
+  const STORAGE_KEY = "habit-tracker-oct19-dec3-2026";
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const DOWS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (e) { state = {}; }
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  const pad = n => String(n).padStart(2, "0");
+  const keyOf = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+
+  // Build the fixed list of dates (local time, no timezone surprises)
+  const days = [];
+  for (let d = new Date(2026, 9, 19); d <= new Date(2026, 11, 3); d.setDate(d.getDate() + 1)) {
+    days.push(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+  }
+  const now = new Date();
+  const todayKey = keyOf(now);
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Header
+  const headRow = document.getElementById("headRow");
+  HABITS.forEach(h => {
+    const th = document.createElement("th");
+    th.scope = "col";
+    th.className = h.cls;
+    th.innerHTML = '<span class="hlabel">' + h.label + '</span>' +
+      '<span class="count" id="count-' + h.id + '">0/' + days.length + '</span>' +
+      '<span class="bar"><i id="bar-' + h.id + '"></i></span>';
+    headRow.appendChild(th);
+  });
+
+  // Body
+  const body = document.getElementById("body");
+  const rows = {};
+  days.forEach((d, i) => {
+    if (i % 7 === 0) {
+      const end = days[Math.min(i + 6, days.length - 1)];
+      const wr = document.createElement("tr");
+      wr.className = "week";
+      wr.innerHTML = '<td colspan="6">Week ' + (i / 7 + 1) + ', ' +
+        MONTHS[d.getMonth()] + ' ' + d.getDate() + '–' +
+        (end.getMonth() !== d.getMonth() ? MONTHS[end.getMonth()] + ' ' : '') + end.getDate() + '</td>';
+      body.appendChild(wr);
+    }
+    const k = keyOf(d);
+    const tr = document.createElement("tr");
+    if (k === todayKey) tr.classList.add("today");
+    if (d < todayMidnight) tr.classList.add("past");
+    const dateText = MONTHS[d.getMonth()] + " " + d.getDate();
+    let html = '<td class="date"><span class="dow">' + DOWS[d.getDay()] + '</span>' +
+      '<span class="dnum">' + dateText + '</span><span class="star" aria-hidden="true">★</span></td>';
+    HABITS.forEach(h => {
+      const checked = state[k] && state[k][h.id] ? " checked" : "";
+      html += '<td class="' + h.cls + '"><label class="cb"><input type="checkbox" data-day="' + k +
+        '" data-habit="' + h.id + '" aria-label="' + h.label + ', ' + DOWS[d.getDay()] + ' ' + dateText + '"' +
+        checked + '>' + CHECK_SVG + '</label></td>';
+    });
+    tr.innerHTML = html;
+    body.appendChild(tr);
+    rows[k] = tr;
+  });
+
+  function isDone(k) {
+    return !!state[k] && HABITS.every(h => state[k][h.id]);
+  }
+
+  function refresh() {
+    let total = 0, perfect = 0;
+    HABITS.forEach(h => {
+      const n = days.filter(d => state[keyOf(d)] && state[keyOf(d)][h.id]).length;
+      total += n;
+      document.getElementById("count-" + h.id).textContent = n + "/" + days.length;
+      document.getElementById("bar-" + h.id).style.width = (n / days.length * 100) + "%";
+    });
+    days.forEach(d => {
+      const k = keyOf(d);
+      const done = isDone(k);
+      if (done) perfect++;
+      rows[k].classList.toggle("done", done);
+    });
+    document.getElementById("totalStat").textContent = total;
+    document.getElementById("perfectStat").textContent = perfect;
+
+    const ts = document.getElementById("todayStat");
+    const tl = document.getElementById("todayLabel");
+    if (rows[todayKey]) {
+      const n = state[todayKey] ? HABITS.filter(h => state[todayKey][h.id]).length : 0;
+      ts.textContent = n + "/5";
+      tl.textContent = n === 5 ? "today, all done" : "done today";
+    } else if (todayMidnight < days[0]) {
+      const diff = Math.round((days[0] - todayMidnight) / 86400000);
+      ts.textContent = diff;
+      tl.textContent = diff === 1 ? "day until you start" : "days until you start";
+    } else {
+      ts.textContent = "Done";
+      tl.textContent = "the challenge is over";
+    }
+  }
+
+  body.addEventListener("change", e => {
+    const input = e.target;
+    if (!input.matches('input[type="checkbox"]')) return;
+    const k = input.dataset.day, h = input.dataset.habit;
+    state[k] = state[k] || {};
+    state[k][h] = input.checked;
+    // 10,000 steps includes 5,000 steps
+    if (h === "s10" && input.checked) {
+      state[k].s5 = true;
+      const five = body.querySelector('input[data-day="' + k + '"][data-habit="s5"]');
+      if (five) five.checked = true;
+    }
+    save();
+    refresh();
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (!confirm("Clear every check-in? This can’t be undone.")) return;
+    state = {};
+    save();
+    body.querySelectorAll('input[type="checkbox"]').forEach(i => { i.checked = false; });
+    refresh();
+  });
+
+  refresh();
+  if (rows[todayKey]) {
+    requestAnimationFrame(() => rows[todayKey].scrollIntoView({ block: "center" }));
+  }
+})();
+</script>
+</body>
+</html>
